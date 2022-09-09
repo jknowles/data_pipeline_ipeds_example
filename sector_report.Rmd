@@ -1,0 +1,97 @@
+---
+title: "HE Sector Report"
+author: "Civilytics Consulting LLC"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: cosmo
+params:
+  input_dataset: "default value"
+  sector_flag: "default value"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+dataset <- tar_read(combine_data)
+dataset <- as.data.frame(dataset)
+sector_flag <- params$sector_flag
+
+# Active
+rep_data <- dataset[dataset$C21BASIC == sector_flag &
+                      dataset$CYACTIVE == 1,]
+
+```
+
+## Institutions Included
+
+
+### Map
+
+```{r}
+library(ggplot2)
+library(sp)
+library(albersusa) # from devtools/Github devtools::install_github("hrbrmstr/albersusa")
+
+
+us_map <- fortify(usa_composite("laea"), region = "name")
+
+#names(us_map)[1] <- "lon"
+points_data <- rep_data[, c("LONGITUD", "LATITUDE")]
+
+
+points_data <- albersusa::points_elided(points_data)
+points_data$id <- NA
+names(points_data) <- c("lon", "lat", "id")
+
+
+ggplot(us_map, aes(map_id = id)) + 
+  geom_map(map = us_map, color = "#2b2b2b", fill = "antiquewhite1") + 
+  expand_limits(x = us_map$long, y = us_map$lat) +
+  geom_point(data = points_data, aes(x = lon, y = lat), 
+             size = 3, alpha = 3/5, color = I("darkred")) +  
+  theme_minimal() +
+  labs(title = "Active University Locations") +
+  theme(axis.line = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(), 
+        panel.grid = element_blank())
+
+```
+
+
+```{r}
+
+rep_data$ADM_RATE_ALL <- as.numeric(rep_data$ADM_RATE_ALL)
+ggplot(rep_data, aes(x = EFYTOTLT, y = ADM_RATE_ALL)) + 
+  geom_point() + 
+  geom_smooth() + 
+  geom_vline(xintercept = mean(rep_data$EFYTOTLT), linetype = 2, color = "red") + 
+  geom_hline(yintercept = mean(rep_data$ADM_RATE_ALL, na.rm = TRUE), 
+             linetype = 2, color = "red") + 
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  labs(x = "Enrollment", y = "Admission Rate", 
+       title = "Enrollment compared to admission rate", 
+       subtitle = "Means shown as red dashed lines") + 
+  theme_minimal()
+
+
+```
+
+
+```{r}
+library(DT)
+
+DT::datatable(rep_data[c("INSTNM", "STABBR", "EFYTOTLT", "ADM_RATE_ALL", "SAT_AVG")], 
+              filter = 'top')
+```
+
+
+```{r names}
+print(sector_flag)
+rep_data$INSTNM
+```
+
+
