@@ -78,8 +78,6 @@ list(
   ),
   tar_target(effy_dict, readxl::read_excel(effy_dict_file, sheet = "varlist")),
 
-
-
   # https://stackoverflow.com/questions/70281450/dealing-with-zip-files-in-a-targets-workflow
   #tar_target(file_names, hd_files), # if there are multiple files?
   tar_target(ipeds_enroll, read.csv(effy2021_files)),
@@ -115,18 +113,8 @@ list(
                                                         "sector_doctoral", "sector_largerMA", "sector_mediumMA",
                                                         "sector_smallMA", "sector_ba_arts", "sector_ba_diverse")))
              ),
-#
-#   tar_render(imm_report,
-#              path = "report.Rmd",
-#              output_file  = "imm_report.html",
-#              params = list(input_model_target = imm_model_brms)),
-#
-#
-#   tar_render()
-#   params = list(input_model_target = imm_model_brms)),
-#
-#
-#   tar_render_rep(
+
+  #   tar_render_rep(
 #     report, "sector_report.Rmd",
 #     params = tibble::tibble(input_dataset = combine_data,
 #                             sector_flag = c(15, 16, 17, 18, 19, 20, 21, 22))
